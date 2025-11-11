@@ -1,0 +1,35 @@
+{
+  "name": "fajas-pad",
+  "version": "1.0.0",
+  "description": "A beautiful, ephemeral scratchpad that combines text writing and drawing with automatic content fading",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "dev": "python -m http.server 8000",
+    "serve": "npx serve .",
+    "deploy": "vercel --prod"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/fajas-pad.git"
+  },
+  "keywords": [
+    "scratchpad",
+    "ephemeral",
+    "drawing",
+    "text-editor",
+    "canvas",
+    "minimalist",
+    "norwegian-design",
+    "web-app"
+  ],
+  "author": "drwolfic (FowzanaSoft Solutions)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/fajas-pad/issues"
+  },
+  "homepage": "https://github.com/yourusername/fajas-pad#readme",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}
