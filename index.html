@@ -28,6 +28,7 @@
             <input type="number" id="customHours" placeholder="hours" min="0.1" step="0.1" aria-label="Custom duration in hours" style="display: none;">
 
             <button id="themeToggle" aria-label="Toggle between light and dark theme">🌙 Dark</button>
+            <button id="exportBtn" aria-label="Export current content">💾 Save</button>
             <div id="timerDisplay">
                 <span id="countdownTimer" class="timer-text" aria-live="polite" aria-label="Time remaining before content fades">00:00:00</span>
             </div>
@@ -35,6 +36,94 @@
             <button id="modeToggle" aria-label="Toggle between text and draw mode">📝 Text</button>
         </div>
     </header>
+
+    <!-- Text Formatting Toolbar - Microsoft Word Inspired -->
+    <div class="text-toolbar" id="textToolbar" role="toolbar" aria-label="Text Formatting Tools" style="display: none;">
+        <div class="toolbar-content">
+            <!-- Font Styles Group -->
+            <div class="format-group" title="Font Styles">
+                <button class="format-btn" data-command="bold" title="Bold (Ctrl+B)" aria-label="Bold text">𝐁</button>
+                <button class="format-btn" data-command="italic" title="Italic (Ctrl+I)" aria-label="Italic text">𝐼</button>
+                <button class="format-btn" data-command="underline" title="Underline (Ctrl+U)" aria-label="Underline text">U̲</button>
+                <button class="format-btn" data-command="strikeThrough" title="Strikethrough" aria-label="Strikethrough text">S̶</button>
+            </div>
+
+            <!-- Paragraph Styles Group -->
+            <div class="format-group" title="Paragraph Styles">
+                <button class="format-btn" data-command="formatBlock" data-value="h1" title="Heading 1" aria-label="Heading 1">H1</button>
+                <button class="format-btn" data-command="formatBlock" data-value="h2" title="Heading 2" aria-label="Heading 2">H2</button>
+                <button class="format-btn" data-command="formatBlock" data-value="h3" title="Heading 3" aria-label="Heading 3">H3</button>
+                <button class="format-btn" data-command="formatBlock" data-value="p" title="Paragraph" aria-label="Paragraph">P</button>
+            </div>
+
+            <!-- Lists Group -->
+            <div class="format-group" title="Lists">
+                <button class="format-btn" data-command="insertUnorderedList" title="Bullet List" aria-label="Insert bullet list">•</button>
+                <button class="format-btn" data-command="insertOrderedList" title="Numbered List" aria-label="Insert numbered list">1.</button>
+            </div>
+
+            <!-- Alignment Group -->
+            <div class="format-group" title="Text Alignment">
+                <button class="format-btn" data-command="justifyLeft" title="Align Left" aria-label="Align text left">⬅</button>
+                <button class="format-btn" data-command="justifyCenter" title="Align Center" aria-label="Align text center">⬌</button>
+                <button class="format-btn" data-command="justifyRight" title="Align Right" aria-label="Align text right">➡</button>
+                <button class="format-btn" data-command="justifyFull" title="Justify" aria-label="Justify text">⬌</button>
+            </div>
+
+            <!-- Font Controls -->
+            <div class="format-group" title="Font Family">
+                <select class="format-select" id="fontFamilySelect" title="Font Family" aria-label="Font family">
+                    <option value="Arial" selected>Arial</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Courier New">Courier New</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Comic Sans MS">Comic Sans MS</option>
+                    <option value="Impact">Impact</option>
+                    <option value="Tahoma">Tahoma</option>
+                    <option value="Trebuchet MS">Trebuchet MS</option>
+                    <option value="Lucida Console">Lucida Console</option>
+                </select>
+            </div>
+
+            <!-- Font Size -->
+            <div class="format-group" title="Font Size">
+                <select class="format-select" id="fontSizeSelect" title="Font Size" aria-label="Font size">
+                    <option value="1">8pt</option>
+                    <option value="2">9pt</option>
+                    <option value="3" selected>10pt</option>
+                    <option value="4">11pt</option>
+                    <option value="5">12pt</option>
+                    <option value="6">14pt</option>
+                    <option value="7">16pt</option>
+                    <option value="8">18pt</option>
+                    <option value="9">20pt</option>
+                    <option value="10">24pt</option>
+                    <option value="11">28pt</option>
+                    <option value="12">32pt</option>
+                    <option value="13">36pt</option>
+                    <option value="14">48pt</option>
+                    <option value="15">72pt</option>
+                    <option value="custom">Custom...</option>
+                </select>
+                <input type="number" id="customFontSize" placeholder="Size" min="1" max="200" style="display: none;" aria-label="Custom font size in points">
+            </div>
+
+            <!-- Text Color -->
+            <div class="format-group" title="Text Color">
+                <button class="format-btn color-preview-btn" data-command="foreColor" data-value="#000000" title="Text Color" aria-label="Text color" id="textColorBtn">
+                    <span class="color-indicator" style="background-color: #000000;"></span>
+                    🎨
+                </button>
+                <input type="color" id="textColorPicker" value="#000000" style="display: none;" aria-label="Choose text color">
+            </div>
+
+            <!-- Clear Formatting -->
+            <div class="format-group" title="Clear Formatting">
+                <button class="format-btn" data-command="removeFormat" title="Clear Formatting" aria-label="Clear all formatting">⌫</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Floating Toolbar -->
     <div class="floating-toolbar" id="floatingToolbar" role="toolbar" aria-label="Drawing Tools">
@@ -102,7 +191,7 @@
 
     <main class="content-area">
         <div class="text-container" id="textContainer" role="main" aria-label="Text editing area">
-            <textarea id="textArea" placeholder="Write your ephemeral thoughts here..." aria-label="Ephemeral text content" aria-describedby="fadeNotice"></textarea>
+            <div id="textEditor" contenteditable="true" placeholder="Write your ephemeral thoughts here..." aria-label="Ephemeral text content" aria-describedby="fadeNotice" spellcheck="true"></div>
         </div>
 
         <div class="canvas-container" id="canvasContainer" role="main" aria-label="Drawing canvas" style="display: none;">

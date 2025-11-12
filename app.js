@@ -272,7 +272,7 @@ class EphemeralPad {
         this.modeToggle = document.getElementById('modeToggle');
         this.textContainer = document.getElementById('textContainer');
         this.canvasContainer = document.getElementById('canvasContainer');
-        this.textArea = document.getElementById('textArea');
+        this.textEditor = document.getElementById('textEditor');
         this.canvas = document.getElementById('canvas');
         this.colorBtns = document.querySelectorAll('.color-btn');
         this.colorPicker = document.getElementById('colorPicker');
@@ -333,9 +333,12 @@ class EphemeralPad {
             this.switchMode(newMode);
         });
 
-        // Text area (debounced save)
+        // Text editor (debounced save)
         const debouncedSaveText = this.debounce(() => this.saveTextData(), 300);
-        this.textArea.addEventListener('input', debouncedSaveText);
+        this.textEditor.addEventListener('input', debouncedSaveText);
+
+        // Setup text formatting toolbar
+        this.setupTextFormatting();
 
         // Color controls
         this.colorBtns.forEach(btn => {
@@ -349,9 +352,9 @@ class EphemeralPad {
         if (undoBtn) undoBtn.addEventListener('click', () => this.undo());
         if (redoBtn) redoBtn.addEventListener('click', () => this.redo());
 
-        // Export controls
-        const exportBtn = document.getElementById('exportBtn');
-        if (exportBtn) exportBtn.addEventListener('click', () => this.exportContent());
+        // Export controls (moved to header)
+        const headerExportBtn = document.getElementById('exportBtn');
+        if (headerExportBtn) headerExportBtn.addEventListener('click', () => this.exportContent());
 
         // Clear canvas
         const clearBtn = document.getElementById('clearBtn');
@@ -906,46 +909,60 @@ class EphemeralPad {
     switchMode(mode) {
         this.currentMode = mode;
 
-        const toolbar = document.getElementById('floatingToolbar');
+        const floatingToolbar = document.getElementById('floatingToolbar');
+        const textToolbar = document.getElementById('textToolbar');
         const drawingTools = document.getElementById('drawingTools');
         const drawingTools2 = document.getElementById('drawingTools2');
         const brushControls = document.getElementById('brushControls');
         const exportControls = document.getElementById('exportControls');
 
-        // Toolbar is always visible with same behavior in both modes
-        if (toolbar) {
-            toolbar.style.display = 'block';
-            toolbar.classList.remove('mini');
-            toolbar.classList.add('active');
+    if (mode === 'text') {
+        // Text mode: Show text toolbar, hide floating toolbar
+        this.textContainer.style.display = 'block';
+        this.canvasContainer.style.display = 'none';
+
+        if (textToolbar) textToolbar.style.display = 'block';
+        if (floatingToolbar) {
+            floatingToolbar.style.display = 'none';
+            floatingToolbar.classList.remove('active', 'mini');
             this.clearAutoHide();
-            this.startAutoHide();
         }
 
-        if (mode === 'text') {
-            this.textContainer.style.display = 'block';
-            this.canvasContainer.style.display = 'none';
-            drawingTools.style.display = 'none';
-            drawingTools2.style.display = 'none';
-            brushControls.style.display = 'none';
-            exportControls.style.display = 'block';
-            this.textArea.focus();
-        } else {
+        drawingTools.style.display = 'none';
+        drawingTools2.style.display = 'none';
+        brushControls.style.display = 'none';
+        exportControls.style.display = 'none'; // Export moved to header
+
+        this.textEditor.focus();
+    } else {
+            // Draw mode: Show floating toolbar, hide text toolbar
             this.textContainer.style.display = 'none';
             this.canvasContainer.style.display = 'block';
+
+            if (textToolbar) textToolbar.style.display = 'none';
+            if (floatingToolbar) {
+                floatingToolbar.style.display = 'block';
+                floatingToolbar.classList.remove('mini');
+                floatingToolbar.classList.add('active');
+                this.clearAutoHide();
+                this.startAutoHide();
+            }
+
             drawingTools.style.display = 'block';
             drawingTools2.style.display = 'block';
             brushControls.style.display = 'block';
-            exportControls.style.display = 'block';
+            exportControls.style.display = 'none'; // Export moved to header
+
             this.setupCanvas();
             this.loadCanvasData();
             this.setTool(this.currentTool); // Apply current tool setting
         }
 
-        // Update export button label based on mode
-        const exportBtn = document.getElementById('exportBtn');
-        if (exportBtn) {
-            exportBtn.textContent = mode === 'text' ? '💾 Save TXT' : '💾 Save PNG';
-            exportBtn.setAttribute('aria-label', mode === 'text' ? 'Export current text as TXT' : 'Export current drawing as PNG');
+        // Update header export button label based on mode
+        const headerExportBtn = document.getElementById('exportBtn');
+        if (headerExportBtn) {
+            headerExportBtn.textContent = mode === 'text' ? '💾 Save TXT' : '💾 Save PNG';
+            headerExportBtn.setAttribute('aria-label', mode === 'text' ? 'Export current text as TXT' : 'Export current drawing as PNG');
         }
 
         this.saveData();
@@ -956,7 +973,7 @@ class EphemeralPad {
         this.currentColor = color;
         this.colorPicker.value = color;
         this.ctx.strokeStyle = color;
-        this.textArea.style.color = color;
+        this.textEditor.style.color = color;
         this.saveData();
     }
 
@@ -981,6 +998,186 @@ class EphemeralPad {
             this.canvas.classList.add('pen-cursor');
             this.canvas.classList.remove('eraser-cursor');
         }
+    }
+
+    // Text formatting setup
+    setupTextFormatting() {
+        const textToolbar = document.getElementById('textToolbar');
+        if (!textToolbar) return;
+
+        // Formatting buttons
+        const formatButtons = textToolbar.querySelectorAll('.format-btn');
+        formatButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const command = btn.dataset.command;
+                this.execFormatCommand(command);
+            });
+        });
+
+        // Font size selector
+        const fontSizeSelect = document.getElementById('fontSizeSelect');
+        const customFontSize = document.getElementById('customFontSize');
+        if (fontSizeSelect) {
+            fontSizeSelect.addEventListener('change', () => {
+                if (fontSizeSelect.value === 'custom') {
+                    // Show custom input
+                    if (customFontSize) {
+                        customFontSize.style.display = 'inline-block';
+                        customFontSize.focus();
+                        customFontSize.select();
+                    }
+                } else {
+                    // Hide custom input and apply selected size
+                    if (customFontSize) {
+                        customFontSize.style.display = 'none';
+                    }
+                    this.execFormatCommand('fontSize', fontSizeSelect.value);
+                }
+            });
+        }
+
+        // Custom font size input
+        if (customFontSize) {
+            customFontSize.addEventListener('input', () => {
+                const size = parseInt(customFontSize.value);
+                if (!isNaN(size) && size > 0 && size <= 200) {
+                    this.execFormatCommand('fontSize', size.toString());
+                }
+            });
+
+            customFontSize.addEventListener('blur', () => {
+                // Hide when focus is lost
+                customFontSize.style.display = 'none';
+            });
+
+            customFontSize.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    customFontSize.blur();
+                } else if (e.key === 'Escape') {
+                    customFontSize.style.display = 'none';
+                    fontSizeSelect.value = '3'; // Reset to default
+                }
+            });
+        }
+
+        // Font family selector
+        const fontFamilySelect = document.getElementById('fontFamilySelect');
+        if (fontFamilySelect) {
+            fontFamilySelect.addEventListener('change', () => {
+                this.execFormatCommand('fontName', fontFamilySelect.value);
+            });
+        }
+
+        // Text color picker
+        const textColorPicker = document.getElementById('textColorPicker');
+        const textColorBtn = document.getElementById('textColorBtn');
+        if (textColorPicker && textColorBtn) {
+            textColorBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                textColorPicker.click();
+            });
+            textColorPicker.addEventListener('input', () => {
+                this.execFormatCommand('foreColor', textColorPicker.value);
+                this.updateColorPreview(textColorPicker.value);
+            });
+        }
+
+        // Background color picker
+        const bgColorPicker = document.getElementById('bgColorPicker');
+        if (bgColorPicker) {
+            bgColorPicker.addEventListener('input', () => {
+                this.execFormatCommand('backColor', bgColorPicker.value);
+            });
+        }
+
+        // Keyboard shortcuts for text formatting
+        this.textEditor.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key.toLowerCase()) {
+                    case 'b':
+                        e.preventDefault();
+                        this.execFormatCommand('bold');
+                        break;
+                    case 'i':
+                        e.preventDefault();
+                        this.execFormatCommand('italic');
+                        break;
+                    case 'u':
+                        e.preventDefault();
+                        this.execFormatCommand('underline');
+                        break;
+                }
+            }
+        });
+
+        // Update button states on selection change and input
+        document.addEventListener('selectionchange', () => this.updateFormatButtons());
+        this.textEditor.addEventListener('input', () => this.updateFormatButtons());
+        this.textEditor.addEventListener('keyup', () => this.updateFormatButtons());
+        this.textEditor.addEventListener('mouseup', () => this.updateFormatButtons());
+
+        // Initial update
+        this.updateFormatButtons();
+    }
+
+    execFormatCommand(command, value = null) {
+        // Focus the editor first
+        this.textEditor.focus();
+
+        // Execute the command
+        try {
+            if (command === 'formatBlock' && value) {
+                // formatBlock expects angle brackets around the tag name
+                document.execCommand(command, false, '<' + value + '>');
+            } else if (value !== null) {
+                document.execCommand(command, false, value);
+            } else {
+                document.execCommand(command, false, null);
+            }
+
+            // Update button active states
+            this.updateFormatButtons();
+
+            // Trigger save
+            this.saveTextData();
+        } catch (error) {
+            console.error('Formatting command failed:', error);
+        }
+    }
+
+    updateColorPreview(color) {
+        const colorIndicator = document.querySelector('.color-indicator');
+        if (colorIndicator) {
+            colorIndicator.style.backgroundColor = color;
+        }
+    }
+
+    updateFormatButtons() {
+        const formatButtons = document.querySelectorAll('.format-btn');
+        formatButtons.forEach(btn => {
+            const command = btn.dataset.command;
+            const value = btn.dataset.value;
+            let isActive = false;
+
+            if (value) {
+                // For commands with values like formatBlock
+                let blockType = document.queryCommandValue(command);
+                if (blockType) {
+                    // Normalize the return value by removing angle brackets and converting to lowercase
+                    blockType = blockType.replace(/[<>]/g, '').toLowerCase();
+                }
+                isActive = blockType === value.toLowerCase();
+            } else {
+                // For simple state commands
+                isActive = document.queryCommandState(command);
+            }
+
+            if (isActive) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
     }
 
     // Text handling
@@ -1141,8 +1338,15 @@ class EphemeralPad {
     }
 
     exportText() {
-        const text = this.textArea.value;
-        if (!text.trim()) {
+        const html = this.textEditor.innerHTML;
+        if (!html.trim()) {
+            this.showError('No text to export.');
+            return;
+        }
+
+        // Strip HTML tags to get plain text
+        const text = html.replace(/<[^>]*>/g, '').trim();
+        if (!text) {
             this.showError('No text to export.');
             return;
         }
@@ -1206,7 +1410,7 @@ class EphemeralPad {
             };
 
             if (this.currentMode === 'text') {
-                data.text = this.textArea.value;
+                data.text = this.textEditor.innerHTML;
             }
 
             localStorage.setItem('ephemeral_data', JSON.stringify(data));
@@ -1263,13 +1467,13 @@ class EphemeralPad {
 
             // Load content based on mode
             if (data.mode === 'text' && data.text) {
-                this.textArea.value = data.text;
+                this.textEditor.innerHTML = data.text;
             } else if (data.mode === 'scribble' && data.imageData) {
                 this.loadCanvasData(data.imageData);
             }
 
             // Apply color
-            this.textArea.style.color = this.currentColor;
+            this.textEditor.style.color = this.currentColor;
             this.ctx.strokeStyle = this.currentColor;
 
             // Calculate and apply fade
@@ -1361,7 +1565,7 @@ class EphemeralPad {
 
     clearContent() {
         if (this.currentMode === 'text') {
-            this.textArea.value = '';
+            this.textEditor.innerHTML = '';
         } else {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         }
@@ -1377,6 +1581,8 @@ class EphemeralPad {
         const drawingTools2 = document.getElementById('drawingTools2');
         const brushControls = document.getElementById('brushControls');
         const exportControls = document.getElementById('exportControls');
+        const floatingToolbar = document.getElementById('floatingToolbar');
+        const textToolbar = document.getElementById('textToolbar');
 
         if (this.currentMode === 'text') {
             this.textContainer.style.display = 'block';
@@ -1385,6 +1591,16 @@ class EphemeralPad {
             drawingTools2.style.display = 'none';
             brushControls.style.display = 'none';
             exportControls.style.display = 'block';
+
+            // Show text toolbar in text mode
+            if (textToolbar) textToolbar.style.display = 'block';
+
+            // Hide floating toolbar in text mode
+            if (floatingToolbar) {
+                floatingToolbar.style.display = 'none';
+                floatingToolbar.classList.remove('active', 'mini');
+                this.clearAutoHide();
+            }
         } else {
             this.textContainer.style.display = 'none';
             this.canvasContainer.style.display = 'block';
@@ -1392,6 +1608,18 @@ class EphemeralPad {
             drawingTools2.style.display = 'block';
             brushControls.style.display = 'block';
             exportControls.style.display = 'block';
+
+            // Hide text toolbar in draw mode
+            if (textToolbar) textToolbar.style.display = 'none';
+
+            // Show floating toolbar in draw mode
+            if (floatingToolbar) {
+                floatingToolbar.style.display = 'block';
+                floatingToolbar.classList.remove('mini');
+                floatingToolbar.classList.add('active');
+                this.clearAutoHide();
+                this.startAutoHide();
+            }
         }
     }
 
