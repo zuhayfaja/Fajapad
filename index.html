@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faja's Pad</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light">
+    <!-- Top Bar - Brand and Theme -->
+    <header class="top-bar" role="banner" aria-label="Application Header">
+        <div class="brand" aria-label="Faja's Pad - Ephemeral Scratchpad">
+            <div class="logo" aria-hidden="true">ℤ𝔽</div>
+            <div class="brand-name">Faja's Pad</div>
+        </div>
+
+        <div class="top-controls">
+            <label for="duration">Duration:</label>
+            <select id="duration" aria-label="Content duration before fading">
+                <option value="1">1 hour</option>
+                <option value="6">6 hours</option>
+                <option value="12">12 hours</option>
+                <option value="24" selected>24 hours</option>
+                <option value="48">48 hours</option>
+                <option value="168">1 week</option>
+                <option value="custom">Custom</option>
+            </select>
+            <input type="number" id="customHours" placeholder="hours" min="0.1" step="0.1" aria-label="Custom duration in hours" style="display: none;">
+
+            <button id="themeToggle" aria-label="Toggle between light and dark theme">🌙 Dark</button>
+            <div id="timerDisplay">
+                <span id="countdownTimer" class="timer-text" aria-live="polite" aria-label="Time remaining before content fades">00:00:00</span>
+            </div>
+
+            <button id="modeToggle" aria-label="Toggle between text and draw mode">📝 Text</button>
+        </div>
+    </header>
+
+    <!-- Floating Toolbar -->
+    <div class="floating-toolbar" id="floatingToolbar" role="toolbar" aria-label="Drawing Tools">
+        <div class="toolbar-drag-handle" aria-label="Drag to move toolbar">
+            <span class="drag-indicator">⋮⋮</span>
+        </div>
+
+        <div class="mini-tools" style="display: none;">
+            <button class="tool-btn active" data-tool="pen" aria-pressed="true" aria-label="Select pen tool">✏️</button>
+            <button class="tool-btn" data-tool="eraser" aria-pressed="false" aria-label="Select eraser tool">🧽</button>
+        </div>
+
+        <div class="toolbar-content">
+            <div class="control-group" id="colorControls">
+                <label>Color:</label>
+                <div class="preset-colors" role="group" aria-label="Color presets">
+                    <button class="color-btn" style="background: #000000;" data-color="#000000" aria-label="Black color" tabindex="0"></button>
+                    <button class="color-btn" style="background: #ff0000;" data-color="#ff0000" aria-label="Red color" tabindex="0"></button>
+                    <button class="color-btn" style="background: #00ff00;" data-color="#00ff00" aria-label="Green color" tabindex="0"></button>
+                    <button class="color-btn" style="background: #0000ff;" data-color="#0000ff" aria-label="Blue color" tabindex="0"></button>
+                    <button class="color-btn" style="background: #ffff00;" data-color="#ffff00" aria-label="Yellow color" tabindex="0"></button>
+                    <button class="color-btn" style="background: #ff00ff;" data-color="#ff00ff" aria-label="Magenta color" tabindex="0"></button>
+                </div>
+                <input type="color" id="colorPicker" class="color-picker" value="#000000" aria-label="Custom color picker">
+            </div>
+
+            <div class="control-group" id="drawingTools" style="display: none;">
+                <label>Actions:</label>
+                <button id="undoBtn" disabled aria-label="Undo last drawing action" aria-disabled="true">↶ Undo</button>
+                <button id="redoBtn" disabled aria-label="Redo last undone action" aria-disabled="true">↷ Redo</button>
+                <button id="clearBtn" aria-label="Clear the canvas">🧹 Clear</button>
+            </div>
+
+            <div class="control-group" id="drawingTools2" style="display: none;">
+                <label>Tool:</label>
+                <div class="tool-toggle" role="group" aria-label="Drawing tool selection">
+                    <button class="tool-btn active" data-tool="pen" aria-pressed="true" aria-label="Select pen tool">✏️ Pen</button>
+                    <button class="tool-btn" data-tool="eraser" aria-pressed="false" aria-label="Select eraser tool">🧽 Eraser</button>
+                </div>
+            </div>
+
+            <div class="control-group" id="brushControls" style="display: none;">
+                <label for="brushSize">Size:</label>
+                <input type="range" id="brushSize" min="1" max="50" value="2" step="1" aria-label="Brush size" aria-valuemin="1" aria-valuemax="50" aria-valuenow="2">
+                <span id="brushSizeValue" aria-live="polite">2px</span>
+            </div>
+
+            <div class="control-group" id="backgroundControls" style="display: none;">
+                <label for="backgroundSelect">Background:</label>
+                <select id="backgroundSelect" aria-label="Canvas export background">
+                    <option value="white" selected>White</option>
+                    <option value="transparent">Transparent</option>
+                    <option value="grid">Grid</option>
+                </select>
+            </div>
+
+            <div class="control-group" id="exportControls" style="display: none;">
+                <label>Export:</label>
+                <button id="exportBtn" aria-label="Export current content">💾 Save</button>
+            </div>
+
+
+        </div>
+    </div>
+
+    <main class="content-area">
+        <div class="text-container" id="textContainer" role="main" aria-label="Text editing area">
+            <textarea id="textArea" placeholder="Write your ephemeral thoughts here..." aria-label="Ephemeral text content" aria-describedby="fadeNotice"></textarea>
+        </div>
+
+        <div class="canvas-container" id="canvasContainer" role="main" aria-label="Drawing canvas" style="display: none;">
+            <canvas id="canvas" aria-label="Interactive drawing canvas" tabindex="0"></canvas>
+            <div id="brushPreview" class="brush-preview" aria-hidden="true"></div>
+        </div>
+    </main>
+
+    <div class="fade-notice" id="fadeNotice" role="status" aria-live="polite" aria-atomic="true">Content will fade over time</div>
+
+    <footer class="app-footer" role="contentinfo">
+        <div class="footer-content">
+            <div class="footer-left">
+                <span class="footer-open-source">Open Source</span>
+            </div>
+            <div class="footer-center">
+                <div class="space-fact-display" id="spaceFactDisplay">
+                    <span class="space-fact-icon">🚀</span>
+                    <span class="space-fact-text" id="currentSpaceFact">Discover the wonders of space...</span>
+                </div>
+            </div>
+            <div class="footer-right">
+                <div class="footer-text">
+                    Made with ❤️ in India
+                </div>
+                <div class="footer-links">
+                    <a href="https://discord.gg/HBFwpdrf" target="_blank" rel="noopener noreferrer" aria-label="Join our Discord community">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
+                        </svg>
+                        Discord
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
