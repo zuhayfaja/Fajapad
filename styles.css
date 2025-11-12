@@ -1,4 +1,24 @@
 /* Norwegian-Inspired Minimalist Design */
+:root {
+    /* Cream paper theme colors */
+    --light-bg-start: #faf7f0;
+    --light-bg-end: #f5f0e8;
+    --cream-shadow: rgba(139, 115, 85, 0.08);
+    --cream-highlight: rgba(255, 248, 235, 0.6);
+    --paper-texture: radial-gradient(circle at 20% 80%, rgba(139, 115, 85, 0.03) 0%, transparent 50%),
+                     radial-gradient(circle at 80% 20%, rgba(139, 115, 85, 0.02) 0%, transparent 50%),
+                     radial-gradient(circle at 40% 40%, rgba(139, 115, 85, 0.01) 0%, transparent 50%);
+
+    /* Black paper theme colors */
+    --dark-bg-start: #0f0f0f;
+    --dark-bg-end: #1a1a1a;
+    --black-shadow: rgba(255, 255, 255, 0.03);
+    --black-highlight: rgba(0, 0, 0, 0.4);
+    --black-paper-texture: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.015) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.01) 0%, transparent 50%);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -9,7 +29,9 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
-    background: linear-gradient(135deg, var(--light-bg-start) 0%, var(--light-bg-end) 100%);
+    background: linear-gradient(135deg, var(--light-bg-start) 0%, var(--light-bg-end) 100%),
+                var(--paper-texture);
+    background-attachment: fixed;
     animation: fadeIn 0.8s ease-out;
 }
 
@@ -19,12 +41,16 @@ body {
 }
 
 body.light {
-    background: linear-gradient(135deg, var(--light-bg-start) 0%, var(--light-bg-end) 100%);
+    background: linear-gradient(135deg, var(--light-bg-start) 0%, var(--light-bg-end) 100%),
+                var(--paper-texture);
+    background-attachment: fixed;
     color: #2d3748;
 }
 
 body.dark {
-    background: linear-gradient(135deg, var(--dark-bg-start) 0%, var(--dark-bg-end) 100%);
+    background: linear-gradient(135deg, var(--dark-bg-start) 0%, var(--dark-bg-end) 100%),
+                var(--black-paper-texture);
+    background-attachment: fixed;
     color: #e2e8f0;
 }
 
@@ -669,11 +695,15 @@ body.dark .tool-toggle {
     bottom: 0;
     opacity: 1;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background: linear-gradient(135deg, var(--light-bg-start) 0%, var(--light-bg-end) 100%),
+                var(--paper-texture);
+    background-attachment: fixed;
 }
 
 body.dark .canvas-container, body.dark .text-container {
-    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+    background: linear-gradient(135deg, var(--dark-bg-start) 0%, var(--dark-bg-end) 100%),
+                var(--black-paper-texture);
+    background-attachment: fixed;
 }
 
 #textArea {
@@ -1634,23 +1664,7 @@ body.dark .canvas-container.bg-grid {
   z-index: 0;
 }
 
-/* Ensure canvas sits above optional backgrounds */
-#canvas { position: relative; z-index: 1; }
-#brushPreview { z-index: 2; }
-.canvas-container, .text-container {
-    position: absolute;
-    top: 64px; /* Below the top bar */
-    left: 0;
-    right: 0;
-    bottom: 0;
-    opacity: 1;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-}
 
-body.dark .canvas-container, body.dark .text-container {
-    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-}
 
 #textArea {
     width: 100%;
