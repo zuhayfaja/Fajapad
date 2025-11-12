@@ -111,6 +111,79 @@
         </div>
     </main>
 
+    <!-- Welcome Popup Modal -->
+    <div class="welcome-modal-overlay" id="welcomeModal" role="dialog" aria-labelledby="welcomeTitle" aria-describedby="welcomeContent" style="display: none;">
+        <div class="welcome-modal">
+            <div class="welcome-header">
+                <div class="welcome-logo">ℤ𝔽</div>
+                <h1 id="welcomeTitle" class="welcome-title">Welcome to Faja's Pad</h1>
+                <p class="welcome-subtitle">Your private, ephemeral scratchpad</p>
+            </div>
+
+            <div id="welcomeContent" class="welcome-content">
+                <div class="welcome-section privacy-section">
+                    <div class="section-icon">🔒</div>
+                    <h3>Privacy First</h3>
+                    <p>Your thoughts and sketches stay completely private. Everything runs locally in your browser - no servers, no accounts, no data collection. Your content disappears automatically when you're done.</p>
+                </div>
+
+                <div class="welcome-section features-section">
+                    <div class="section-icon">✨</div>
+                    <h3>How It Works</h3>
+                    <div class="features-grid">
+                        <div class="feature-item">
+                            <div class="feature-icon">📝</div>
+                            <div class="feature-text">
+                                <strong>Text & Drawing Modes</strong>
+                                <span>Write notes or sketch ideas freely</span>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">⏰</div>
+                            <div class="feature-text">
+                                <strong>Ephemeral Content</strong>
+                                <span>Set duration from 1 hour to 1 week</span>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🚀</div>
+                            <div class="feature-text">
+                                <strong>Space Facts</strong>
+                                <span>Learn something new during longer sessions</span>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">💾</div>
+                            <div class="feature-text">
+                                <strong>Export Anytime</strong>
+                                <span>Save important work before it fades</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="welcome-section tips-section">
+                    <div class="section-icon">💡</div>
+                    <h3>Quick Tips</h3>
+                    <ul class="tips-list">
+                        <li>Choose your preferred duration in the top bar</li>
+                        <li>Switch between text and drawing modes anytime</li>
+                        <li>Use the floating toolbar for drawing tools</li>
+                        <li>Export your work before the timer runs out</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="welcome-footer">
+                <label class="dont-show-again">
+                    <input type="checkbox" id="dontShowAgain">
+                    <span>Don't show this again</span>
+                </label>
+                <button class="welcome-button" id="getStartedBtn">Get Started</button>
+            </div>
+        </div>
+    </div>
+
     <div class="fade-notice" id="fadeNotice" role="status" aria-live="polite" aria-atomic="true">Content will fade over time</div>
 
     <footer class="app-footer" role="contentinfo">

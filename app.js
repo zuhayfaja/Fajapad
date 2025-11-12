@@ -297,6 +297,7 @@ class EphemeralPad {
             this.setupEventListeners();
             this.startFadeTimer();
             this.updateUI();
+            this.checkAndShowWelcomeModal();
         } catch (error) {
             console.error('Failed to initialize application:', error);
             this.showError('Failed to initialize the application. Please refresh the page.');
@@ -1528,6 +1529,80 @@ class EphemeralPad {
                 errorDiv.parentNode.removeChild(errorDiv);
             }
         }, 5000);
+    }
+
+    // Welcome modal functionality
+    checkAndShowWelcomeModal() {
+        try {
+            const hasSeenWelcome = localStorage.getItem('welcome_modal_shown');
+            if (!hasSeenWelcome) {
+                this.showWelcomeModal();
+            }
+        } catch (error) {
+            console.error('Failed to check welcome modal status:', error);
+            // If localStorage fails, show the modal anyway to ensure users see it
+            this.showWelcomeModal();
+        }
+    }
+
+    showWelcomeModal() {
+        const modal = document.getElementById('welcomeModal');
+        if (!modal) return;
+
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+        // Focus management
+        const getStartedBtn = document.getElementById('getStartedBtn');
+        if (getStartedBtn) {
+            getStartedBtn.focus();
+        }
+
+        // Setup event listeners
+        this.setupWelcomeModalListeners();
+    }
+
+    hideWelcomeModal() {
+        const modal = document.getElementById('welcomeModal');
+        if (!modal) return;
+
+        modal.style.display = 'none';
+        document.body.style.overflow = ''; // Restore scrolling
+
+        // Check if user wants to hide permanently
+        const dontShowAgain = document.getElementById('dontShowAgain');
+        if (dontShowAgain && dontShowAgain.checked) {
+            try {
+                localStorage.setItem('welcome_modal_shown', 'true');
+            } catch (error) {
+                console.error('Failed to save welcome modal preference:', error);
+            }
+        }
+    }
+
+    setupWelcomeModalListeners() {
+        const getStartedBtn = document.getElementById('getStartedBtn');
+        const modal = document.getElementById('welcomeModal');
+
+        if (getStartedBtn) {
+            getStartedBtn.addEventListener('click', () => this.hideWelcomeModal());
+        }
+
+        // Close on backdrop click
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    this.hideWelcomeModal();
+                }
+            });
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+                this.hideWelcomeModal();
+            }
+        });
     }
 
     // Brush preview helpers
