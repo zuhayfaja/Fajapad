@@ -325,6 +325,12 @@ class EphemeralPad {
         // Theme toggle
         this.themeToggle.addEventListener('click', () => this.toggleTheme());
 
+        // Info button
+        const infoBtn = document.getElementById('infoBtn');
+        if (infoBtn) {
+            infoBtn.addEventListener('click', () => this.showWelcomeModal());
+        }
+
         // Mode toggle
         this.modeToggle.addEventListener('click', () => {
             const newMode = this.currentMode === 'text' ? 'scribble' : 'text';
