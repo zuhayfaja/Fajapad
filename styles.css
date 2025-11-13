@@ -1,5 +1,9 @@
 /* Norwegian-Inspired Minimalist Design */
 :root {
+    /* Layout dimensions */
+    --header-h: 64px;
+    --footer-h: 64px;
+
     /* Cream paper theme colors */
     --light-bg-start: #faf7f0;
     --light-bg-end: #f5f0e8;
@@ -82,7 +86,7 @@ body.dark .top-bar {
 .top-controls {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 20px;
     flex-wrap: wrap;
 }
 
@@ -120,26 +124,29 @@ body.dark .top-controls button {
 
 /* Floating Toolbar */
 .floating-toolbar {
-    position: absolute;
+    position: fixed;
     bottom: 100px;
     right: 24px;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: 16px;
-    padding: 16px;
+    padding: 20px;
     box-shadow:
         0 8px 32px rgba(0, 0, 0, 0.15),
         0 2px 8px rgba(0, 0, 0, 0.08);
     border: 1px solid rgba(148, 163, 184, 0.1);
     z-index: 999;
-    max-width: 320px;
+    max-width: 340px;
+    min-width: 280px;
+    contain: layout style;
     cursor: move;
     user-select: none;
     animation: toolbarSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     box-sizing: border-box;
     overflow: hidden;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity;
 }
 
 body.dark .floating-toolbar {
@@ -152,15 +159,15 @@ body.dark .floating-toolbar {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 12px 16px;
-    margin: -16px -16px 12px -16px;
+    padding: 16px 20px;
+    margin: -20px -20px 16px -20px;
     cursor: grab;
-    border-radius: 12px 12px 0 0;
-    background: rgba(148, 163, 184, 0.05);
+    border-radius: 16px 16px 0 0;
+    background: rgba(148, 163, 184, 0.08);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     position: relative;
     overflow: hidden;
 }
@@ -207,7 +214,7 @@ body.dark .drag-indicator {
 .toolbar-content {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
     padding: 0 4px;
 }
 
@@ -229,11 +236,14 @@ body.dark .drag-indicator {
 
 /* Mini pill state for draw mode */
 .floating-toolbar.mini {
-    width: 120px;
-    height: 40px;
-    border-radius: 20px;
-    padding: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    width: 140px;
+    height: 48px;
+    border-radius: 24px;
+    padding: 8px 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(148, 163, 184, 0.15);
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -250,7 +260,7 @@ body.dark .drag-indicator {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     height: 100%;
 }
 
@@ -259,19 +269,19 @@ body.dark .drag-indicator {
 }
 
 .floating-toolbar.mini .mini-tools .tool-btn {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, 0.3);
     background: rgba(255, 255, 255, 0.9);
     color: #374151;
-    font-size: 16px;
+    font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 body.dark .floating-toolbar.mini .mini-tools .tool-btn {
@@ -293,7 +303,15 @@ body.dark .floating-toolbar.mini .mini-tools .tool-btn {
 
 /* Smooth transitions for auto-hide */
 .floating-toolbar {
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Subtle hover effect for better interactivity */
+.floating-toolbar:hover {
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.2),
+        0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
 }
 
 @keyframes slideDown {
@@ -327,7 +345,7 @@ body.dark .toolbar {
 .brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
     margin-right: 20px;
     padding: 8px 0;
 }
@@ -411,66 +429,12 @@ body.dark #infoBtn:hover {
     order: -1;
 }
 
-body.dark .menu-toggle {
-    background: rgba(45, 55, 72, 0.5);
-    border-color: rgba(148, 163, 184, 0.2);
-}
-
-.menu-toggle:hover {
-    background: rgba(255, 255, 255, 0.7);
-    transform: scale(1.05);
-}
-
-body.dark .menu-toggle:hover {
-    background: rgba(45, 55, 72, 0.7);
-}
-
-.hamburger-line {
-    width: 20px;
-    height: 2px;
-    background: #64748b;
-    margin: 2px 0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 1px;
-}
-
-body.dark .hamburger-line {
-    background: #94a3b8;
-}
-
-.menu-toggle.active .hamburger-line:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 5px);
-}
-
-.menu-toggle.active .hamburger-line:nth-child(2) {
-    opacity: 0;
-}
-
-.menu-toggle.active .hamburger-line:nth-child(3) {
-    transform: rotate(-45deg) translate(7px, -6px);
-}
-
-/* Collapsible toolbar controls */
-.toolbar.collapsed .control-group:not(.brand) {
+/* Collapse top-controls when toolbar is collapsed */
+.top-bar.toolbar.collapsed .top-controls {
     display: none;
 }
 
-.toolbar.collapsed {
-    padding: 12px 16px;
-}
 
-.control-group {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.5);
-    padding: 8px 16px;
-    border-radius: 12px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(148, 163, 184, 0.1);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
-}
 
 .control-group:nth-child(1) { animation-delay: 0.1s; }
 .control-group:nth-child(2) { animation-delay: 0.2s; }
@@ -578,7 +542,7 @@ button:active {
 
 .preset-colors {
     display: flex;
-    gap: 8px;
+    gap: 10px;
 }
 
 .color-btn {
@@ -726,7 +690,7 @@ body.dark .tool-toggle {
     top: 108px; /* Below the top bar (64px) + compact text toolbar (44px) */
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: var(--footer-h);
     opacity: 1;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     background: linear-gradient(135deg, var(--light-bg-start) 0%, var(--light-bg-end) 100%),
@@ -761,51 +725,9 @@ body.dark .canvas-container, body.dark .text-container {
     font-style: italic;
 }
 
-#canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-    touch-action: none;
-}
+/* dedup: definitions present later in file */
 
-#canvas.pen-cursor {
-    cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="black"/></svg>') 0 24, crosshair;
-}
-
-#canvas.eraser-cursor {
-    cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M14.12 10.47L12 12.59l-2.13-2.12-1.41 1.41L10.59 14l-2.12 2.12 1.41 1.41L12 15.41l2.12 2.12 1.41-1.41L13.41 14l2.12-2.13z" fill="red"/><circle cx="12" cy="12" r="10" fill="none" stroke="red" stroke-width="2"/></svg>') 12 12, crosshair;
-}
-
-.fade-notice {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    color: #2d3748;
-    padding: 12px 20px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 500;
-    opacity: 0;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    pointer-events: none;
-    border: 1px solid rgba(148, 163, 184, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-body.dark .fade-notice {
-    background: rgba(45, 55, 72, 0.95);
-    color: #e2e8f0;
-    border-color: rgba(148, 163, 184, 0.3);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
-.fade-notice.visible {
-    opacity: 1;
-    transform: translateY(-4px);
-}
+/* dedup: definitions present later in file */
 
 /* Norwegian Aurora-inspired accent colors */
 .norwegian-blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
@@ -895,7 +817,7 @@ body.dark .fade-notice {
     .floating-toolbar {
         max-width: 280px;
         padding: 12px;
-        bottom: 120px; /* Higher on mobile to avoid footer */
+        bottom: calc(env(safe-area-inset-bottom) + 120px); /* Avoid gesture bar */
         right: 16px; /* Closer to edge on mobile */
         border-radius: 14px;
     }
@@ -1061,8 +983,11 @@ body.dark .fade-notice {
     }
 
     .canvas-container, .text-container {
-        top: 80px;
+        top: var(--header-h);
         padding: 16px;
+        bottom: calc(env(safe-area-inset-bottom) + var(--footer-h));
+        min-height: calc(100vh - var(--header-h) - var(--footer-h) - env(safe-area-inset-bottom));
+        z-index: 0;
     }
 
     #textArea {
@@ -1072,13 +997,25 @@ body.dark .fade-notice {
     }
 
     .fade-notice {
-        bottom: 16px;
+        bottom: calc(env(safe-area-inset-bottom) + 16px);
         right: 16px;
         left: 16px;
         text-align: center;
         font-size: 13px;
         padding: 10px 16px;
     }
+}
+
+/* Icon + Label helpers */
+.icon { display: inline-flex; align-items: center; justify-content: center; }
+.label { display: inline-block; }
+
+@media (max-width: 768px) {
+  .top-controls .label { display: none; }
+}
+
+@media (max-width: 480px) {
+  .footer-links .label { display: none; }
 }
 
 /* Welcome Modal */
@@ -1883,11 +1820,24 @@ body.dark .footer-links a {
         flex-direction: column;
         gap: 12px;
         text-align: center;
-        padding: 16px 20px;
+        padding: 12px 16px;
     }
 
     .footer-links {
         justify-content: center;
+        gap: 12px;
+    }
+
+    /* Reduce footer font sizes for mobile */
+    .footer-text,
+    .footer-links a,
+    .space-fact-display,
+    .footer-open-source {
+        font-size: 12px;
+    }
+
+    .space-fact-icon {
+        font-size: 14px;
     }
 }
 
@@ -1914,123 +1864,11 @@ body.dark .footer-links a {
     }
 
     .app-footer {
-        position: relative;
-        margin-top: 20px;
+        padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
     }
 }
 
 /* Space Fact Notifications */
-.space-fact-notification {
-    position: fixed;
-    top: 80px;
-    right: 24px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 12px;
-    padding: 16px 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    max-width: 320px;
-    z-index: 1001;
-    opacity: 0;
-    transform: translateY(-20px) scale(0.95);
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    pointer-events: auto;
-}
-
-body.dark .space-fact-notification {
-    background: rgba(45, 55, 72, 0.95);
-    border-color: rgba(59, 130, 246, 0.3);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
-.space-fact-notification.visible {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-}
-
-.space-fact-content {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-}
-
-.space-fact-icon {
-    font-size: 24px;
-    line-height: 1;
-    flex-shrink: 0;
-    margin-top: 2px;
-}
-
-.space-fact-text {
-    font-size: 14px;
-    line-height: 1.5;
-    color: #374151;
-    font-weight: 500;
-    margin: 0;
-    flex: 1;
-}
-
-body.dark .space-fact-text {
-    color: #e2e8f0;
-}
-
-.space-fact-close {
-    background: none;
-    border: none;
-    font-size: 18px;
-    color: #9ca3af;
-    cursor: pointer;
-    padding: 0;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-    margin-top: -2px;
-}
-
-.space-fact-close:hover {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-}
-
-.space-fact-close:active {
-    transform: scale(0.9);
-}
-
-/* Mobile adjustments for space facts */
-@media (max-width: 768px) {
-    .space-fact-notification {
-        top: 80px;
-        right: 16px;
-        left: 16px;
-        max-width: none;
-        padding: 14px 16px;
-    }
-
-    .space-fact-content {
-        gap: 10px;
-    }
-
-    .space-fact-icon {
-        font-size: 20px;
-    }
-
-    .space-fact-text {
-        font-size: 13px;
-    }
-
-    .space-fact-close {
-        font-size: 16px;
-        width: 18px;
-        height: 18px;
-    }
-}
 
 .brush-preview {
   position: absolute;
@@ -2049,7 +1887,17 @@ body.dark .space-fact-text {
 }
 
 .brush-preview.visible {
-  opacity: 1;
+    opacity: 1;
+}
+
+.brush-preview.pulse {
+  animation: brushPulse 160ms ease-out;
+}
+
+@keyframes brushPulse {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.25); }
+  100% { transform: translate(-50%, -50%) scale(1); }
 }
 
 /* Canvas background variations */
@@ -2248,86 +2096,7 @@ body.dark .fade-notice {
     }
 }
 
-@media (max-width: 768px) {
-    .menu-toggle {
-        display: flex;
-    }
 
-    .toolbar {
-        padding: 12px 16px;
-        gap: 12px;
-    }
-
-    .brand {
-        margin-right: 12px;
-    }
-
-    .logo {
-        font-size: 24px;
-    }
-
-    .brand-name {
-        font-size: 16px;
-    }
-
-    .control-group {
-        padding: 8px 12px;
-        gap: 8px;
-        min-height: 44px; /* Ensure touch targets meet minimum size */
-    }
-
-    .control-group label {
-        font-size: 12px;
-        min-width: fit-content;
-    }
-
-    /* Improve button sizing for touch */
-    .control-group select,
-    .control-group input[type="number"],
-    .control-group button {
-        min-height: 36px;
-        padding: 8px 12px;
-        font-size: 14px;
-    }
-
-    .mode-btn, .tool-btn {
-        min-height: 40px;
-        padding: 8px 16px;
-        font-size: 14px;
-    }
-
-    .color-btn {
-        width: 32px;
-        height: 32px;
-        min-width: 32px;
-        min-height: 32px;
-    }
-
-    .color-picker {
-        width: 40px;
-        height: 40px;
-    }
-
-    .canvas-container, .text-container {
-        top: 80px;
-        padding: 16px;
-    }
-
-    #textArea {
-        padding: 16px;
-        font-size: 16px;
-        line-height: 1.6;
-    }
-
-    .fade-notice {
-        bottom: 16px;
-        right: 16px;
-        left: 16px;
-        text-align: center;
-        font-size: 13px;
-        padding: 10px 16px;
-    }
-}
 
 /* Footer Styling */
 .app-footer {

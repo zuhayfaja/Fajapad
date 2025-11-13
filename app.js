@@ -12,6 +12,8 @@ class EphemeralPad {
         this.canvasHistory = [];
         this.historyIndex = -1;
         this.maxHistory = 20;
+        this.sanitizerAllowedTags = new Set(['h1','h2','h3','p','ul','ol','li','strong','b','em','i','u','s','blockquote','span']);
+        this.sanitizerAllowedStyles = new Set(['color','font-weight','font-style','text-decoration']);
 
         // Space facts collection and tracking
         this.spaceFacts = [
@@ -286,12 +288,24 @@ class EphemeralPad {
         // Space facts tracking
         this.shownFacts = new Set();
         this.lastFactTime = 0;
+        // Space fact notification removed
 
+        this.refs = {
+            floatingToolbar: document.getElementById('floatingToolbar'),
+            textToolbar: document.getElementById('textToolbar'),
+            drawingTools: document.getElementById('drawingTools'),
+            drawingTools2: document.getElementById('drawingTools2'),
+            brushControls: document.getElementById('brushControls'),
+            exportControls: document.getElementById('exportControls'),
+            backgroundSelect: document.getElementById('backgroundSelect')
+        };
         this.init();
+        try { window.padApp = this; } catch (e) {}
     }
 
     init() {
         try {
+            this.sessionStartTs = Date.now();
             this.setupCanvas();
             this.loadData();
             this.setupEventListeners();
@@ -361,6 +375,8 @@ class EphemeralPad {
         // Export controls (moved to header)
         const headerExportBtn = document.getElementById('exportBtn');
         if (headerExportBtn) headerExportBtn.addEventListener('click', () => this.exportContent());
+        const canvasExportBtn = document.getElementById('exportCanvasBtn');
+        if (canvasExportBtn) canvasExportBtn.addEventListener('click', () => this.exportContent());
 
         // Clear canvas
         const clearBtn = document.getElementById('clearBtn');
@@ -391,17 +407,11 @@ class EphemeralPad {
         // Throttled canvas persistence
         this.saveCanvasDataThrottled = this.throttle(() => this.saveCanvasData(), 250);
 
-        // Canvas events
-        this.canvas.addEventListener('mousedown', (e) => { this.updateBrushPreview(e); this.startDrawing(e); this.resetAutoHide(); });
-        this.canvas.addEventListener('mousemove', (e) => { this.updateBrushPreview(e); this.draw(e); });
-        this.canvas.addEventListener('mouseup', () => this.stopDrawing());
-        this.canvas.addEventListener('mouseout', () => { this.stopDrawing(); this.hideBrushPreview(); });
-        this.canvas.addEventListener('mouseenter', (e) => { this.updateBrushPreview(e); this.showBrushPreview(); });
-
-    // Touch events for mobile
-    this.canvas.addEventListener('touchstart', (e) => { this.showBrushPreview(); this.handleTouchStart(e); this.resetAutoHide(); }, { passive: false });
-    this.canvas.addEventListener('touchmove', (e) => { this.updateBrushPreview(e); this.handleTouchMove(e); }, { passive: false });
-    this.canvas.addEventListener('touchend', (e) => { this.hideBrushPreview(); this.handleTouchEnd(e); }, { passive: false });
+        // Pointer events
+        this.canvas.addEventListener('pointerdown', (e) => { this.showBrushPreview(); this.updateBrushPreview(e); this.startDrawing(e); this.resetAutoHide(); this.canvas.setPointerCapture(e.pointerId); }, { passive: false });
+        this.canvas.addEventListener('pointermove', (e) => { this.updateBrushPreview(e); this.draw(e); }, { passive: false });
+        this.canvas.addEventListener('pointerup', (e) => { this.stopDrawing(); }, { passive: false });
+        this.canvas.addEventListener('pointerleave', (e) => { this.stopDrawing(); this.hideBrushPreview(); }, { passive: false });
 
         // Window resize
         window.addEventListener('resize', () => {
@@ -411,6 +421,13 @@ class EphemeralPad {
             }
             // Always reposition toolbar on resize to ensure it's visible
             this.repositionToolbar();
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (this.rafId) { cancelAnimationFrame(this.rafId); this.rafId = null; }
+                this.clearCanvasHistory();
+            }
         });
 
         // ResizeObserver to preserve canvas content on container resize
@@ -510,10 +527,8 @@ class EphemeralPad {
     }
 
     displayFact(fact) {
-        // Update footer fact display
         const factTextElement = document.getElementById('currentSpaceFact');
         if (factTextElement) {
-            // Add fade out animation
             factTextElement.style.opacity = '0';
             factTextElement.style.transform = 'translateY(10px)';
 
@@ -523,6 +538,7 @@ class EphemeralPad {
                 factTextElement.style.transform = 'translateY(0)';
             }, 200);
         }
+        // Notification removed: footer fact display only
     }
 
     shuffleArray(array) {
@@ -534,6 +550,8 @@ class EphemeralPad {
         return shuffled;
     }
 
+    // Space fact notification removed
+
     // Duration handling
     handleDurationChange() {
         if (this.durationSelect.value === 'custom') {
@@ -543,18 +561,61 @@ class EphemeralPad {
             this.customHoursInput.style.display = 'none';
             this.saveData();
         }
+        this.lastFactTime = 0;
     }
 
     handleCustomHoursChange() {
+        const v = parseFloat(this.customHoursInput.value);
+        let h = isNaN(v) ? 24 : v;
+        if (h < 0.1) h = 0.1;
+        if (h > 168) h = 168;
+        this.customHoursInput.value = h;
+        this.customHoursInput.setCustomValidity(h >= 0.1 && h <= 168 ? '' : 'Enter 0.1–168 hours');
         this.saveData();
+        this.lastFactTime = 0;
     }
 
     getCurrentDuration() {
         if (this.durationSelect.value === 'custom') {
             const hours = parseFloat(this.customHoursInput.value);
-            return isNaN(hours) || hours <= 0 ? 24 : hours;
+            if (isNaN(hours) || hours <= 0) return 24;
+            const h = Math.min(Math.max(hours, 0.1), 168);
+            return h;
         }
         return parseFloat(this.durationSelect.value);
+    }
+
+    sanitizeHTML(input) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = input || '';
+        const cleanNode = (node) => {
+            if (node.nodeType === 3) return;
+            if (node.nodeType !== 1) { node.remove(); return; }
+            const tag = node.tagName.toLowerCase();
+            if (!this.sanitizerAllowedTags.has(tag)) {
+                const parent = node.parentNode;
+                while (node.firstChild) parent.insertBefore(node.firstChild, node);
+                node.remove();
+                return;
+            }
+            Array.from(node.attributes).forEach((a) => {
+                const n = a.name.toLowerCase();
+                const v = a.value || '';
+                if (n.startsWith('on')) node.removeAttribute(a.name);
+                else if (n === 'style') {
+                    const style = node.style;
+                    for (let i = style.length - 1; i >= 0; i--) {
+                        const prop = style[i].toLowerCase();
+                        if (!this.sanitizerAllowedStyles.has(prop)) style.removeProperty(prop);
+                    }
+                } else if (n === 'href' || n === 'src') {
+                    if (v.trim().toLowerCase().startsWith('javascript:')) node.removeAttribute(a.name);
+                }
+            });
+            Array.from(node.childNodes).forEach(cleanNode);
+        };
+        Array.from(wrapper.childNodes).forEach(cleanNode);
+        return wrapper.innerHTML;
     }
 
     // Theme toggle
@@ -637,13 +698,43 @@ class EphemeralPad {
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
 
-            newLeft = Math.max(0, Math.min(newLeft, viewportWidth - rect.width));
-            newTop = Math.max(64, Math.min(newTop, viewportHeight - rect.height - 100));
+            newLeft = Math.max(16, Math.min(newLeft, viewportWidth - rect.width));
+            newTop = Math.max(80, Math.min(newTop, viewportHeight - rect.height - 100));
 
             toolbar.style.left = `${newLeft}px`;
             toolbar.style.top = `${newTop}px`;
             toolbar.style.right = 'auto';
             toolbar.style.bottom = 'auto';
+
+            // Additional collision detection with canvas container
+            const canvasContainer = document.getElementById('canvasContainer');
+            if (canvasContainer && canvasContainer.style.display !== 'none') {
+                const canvasRect = canvasContainer.getBoundingClientRect();
+                
+                // Check if toolbar overlaps with canvas
+                const overlap = !(rect.right < canvasRect.left || 
+                               rect.left > canvasRect.right || 
+                               rect.bottom < canvasRect.top || 
+                               rect.top > canvasRect.bottom);
+                
+                if (overlap) {
+                    // Reposition to avoid canvas overlap
+                    if (canvasRect.left > rect.width + 32) {
+                        // Place to the left of canvas
+                        newLeft = 16;
+                    } else if (viewportWidth - canvasRect.right > rect.width + 32) {
+                        // Place to the right of canvas
+                        newLeft = viewportWidth - rect.width - 16;
+                    } else {
+                        // Place above canvas
+                        newTop = Math.max(80, canvasRect.top - rect.height - 16);
+                    }
+                    
+                    // Apply collision-adjusted position
+                    toolbar.style.left = `${newLeft}px`;
+                    toolbar.style.top = `${newTop}px`;
+                }
+            }
 
             e.preventDefault();
         };
@@ -828,9 +919,9 @@ class EphemeralPad {
 
         // Check if toolbar is within viewport bounds
         const isOutOfBounds =
-            rect.left < 0 ||
-            rect.top < 64 ||
-            rect.right > viewportWidth ||
+            rect.left < 16 ||
+            rect.top < 80 ||
+            rect.right > viewportWidth - 16 ||
             rect.bottom > viewportHeight - 100;
 
         if (isOutOfBounds) {
@@ -915,12 +1006,12 @@ class EphemeralPad {
     switchMode(mode) {
         this.currentMode = mode;
 
-        const floatingToolbar = document.getElementById('floatingToolbar');
-        const textToolbar = document.getElementById('textToolbar');
-        const drawingTools = document.getElementById('drawingTools');
-        const drawingTools2 = document.getElementById('drawingTools2');
-        const brushControls = document.getElementById('brushControls');
-        const exportControls = document.getElementById('exportControls');
+        const floatingToolbar = this.refs.floatingToolbar;
+        const textToolbar = this.refs.textToolbar;
+        const drawingTools = this.refs.drawingTools;
+        const drawingTools2 = this.refs.drawingTools2;
+        const brushControls = this.refs.brushControls;
+        const exportControls = this.refs.exportControls;
 
     if (mode === 'text') {
         // Text mode: Show text toolbar, hide floating toolbar
@@ -962,6 +1053,7 @@ class EphemeralPad {
             this.setupCanvas();
             this.loadCanvasData();
             this.setTool(this.currentTool); // Apply current tool setting
+            this.clearCanvasHistory();
         }
 
         // Update header export button label based on mode
@@ -1194,31 +1286,70 @@ class EphemeralPad {
     // Canvas drawing
     startDrawing(e) {
         this.isDrawing = true;
+        this.nextX = undefined;
+        this.nextY = undefined;
+        this.ctx.beginPath();
         [this.lastX, this.lastY] = this.getCanvasCoordinates(e);
-        // Save state before starting to draw
         this.saveCanvasState();
+        if (!this.rafId) {
+            this.rafId = requestAnimationFrame(() => this.drawLoop());
+        }
+        const preview = document.getElementById('brushPreview');
+        if (preview) {
+            preview.classList.add('pulse');
+            setTimeout(() => preview.classList.remove('pulse'), 160);
+        }
     }
 
     draw(e) {
         if (!this.isDrawing) return;
         const [x, y] = this.getCanvasCoordinates(e);
+        if (!this.isInCanvas(x, y)) {
+            this.stopDrawing();
+            return;
+        }
+        this.nextX = x;
+        this.nextY = y;
+    }
 
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.lastX, this.lastY);
-        this.ctx.lineTo(x, y);
-        this.ctx.stroke();
-
-        [this.lastX, this.lastY] = [x, y];
-        this.saveCanvasDataThrottled();
+    drawLoop() {
+        if (this.isDrawing && typeof this.nextX === 'number') {
+            if (!this.isInCanvas(this.nextX, this.nextY)) {
+                this.stopDrawing();
+                return;
+            }
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.lastX, this.lastY);
+            this.ctx.lineTo(this.nextX, this.nextY);
+            this.ctx.stroke();
+            this.lastX = this.nextX;
+            this.lastY = this.nextY;
+            this.saveCanvasDataThrottled();
+        }
+        this.rafId = requestAnimationFrame(() => this.drawLoop());
     }
 
     stopDrawing() {
         this.isDrawing = false;
+        if (this.rafId) {
+            cancelAnimationFrame(this.rafId);
+            this.rafId = null;
+        }
+        this.nextX = undefined;
+        this.nextY = undefined;
+        this.ctx.beginPath();
+    }
+
+    isInCanvas(x, y) {
+        return x >= 0 && y >= 0 && x < this.canvas.width && y < this.canvas.height;
     }
 
     // Undo/Redo functionality
     saveCanvasState() {
         // Save current canvas state
+        if (!this.ctx || !this.canvas || this.canvas.width === 0 || this.canvas.height === 0) {
+            return;
+        }
         const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
 
         // Remove any history after current index (for when user draws after undo)
@@ -1341,10 +1472,11 @@ class EphemeralPad {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        this.clearCanvasHistory();
     }
 
     exportText() {
-        const html = this.textEditor.innerHTML;
+        const html = this.sanitizeHTML(this.textEditor.innerHTML);
         if (!html.trim()) {
             this.showError('No text to export.');
             return;
@@ -1416,7 +1548,7 @@ class EphemeralPad {
             };
 
             if (this.currentMode === 'text') {
-                data.text = this.textEditor.innerHTML;
+                data.text = this.sanitizeHTML(this.textEditor.innerHTML);
             }
 
             localStorage.setItem('ephemeral_data', JSON.stringify(data));
@@ -1473,7 +1605,7 @@ class EphemeralPad {
 
             // Load content based on mode
             if (data.mode === 'text' && data.text) {
-                this.textEditor.innerHTML = data.text;
+                this.textEditor.innerHTML = this.sanitizeHTML(data.text);
             } else if (data.mode === 'scribble' && data.imageData) {
                 this.loadCanvasData(data.imageData);
             }
@@ -1511,6 +1643,9 @@ class EphemeralPad {
                 const saved = localStorage.getItem('ephemeral_data');
                 if (!saved) {
                     this.timerDisplay.style.display = 'none';
+                    const ts = this.sessionStartTs || Date.now();
+                    const dur = this.getCurrentDuration();
+                    this.checkAndShowSpaceFact(ts, dur, Date.now() - ts);
                     return;
                 }
 
@@ -1563,8 +1698,8 @@ class EphemeralPad {
         this.countdownTimer.textContent = timeString;
         this.timerDisplay.style.display = remaining > 0 ? 'block' : 'none';
 
-        // Show space facts for preset timers only
-        if (this.isPresetTimer(duration) && remaining > 0) {
+        // Show space facts while time remains (footer only)
+        if (remaining > 0) {
             this.checkAndShowSpaceFact(timestamp, duration, elapsed);
         }
     }
@@ -1576,6 +1711,7 @@ class EphemeralPad {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         }
         localStorage.removeItem('ephemeral_data');
+        this.clearCanvasHistory();
     }
 
     // UI updates
@@ -1583,12 +1719,12 @@ class EphemeralPad {
         // Update mode toggle button text
         this.modeToggle.textContent = this.currentMode === 'text' ? '📝 Text' : '🎨 Draw';
 
-        const drawingTools = document.getElementById('drawingTools');
-        const drawingTools2 = document.getElementById('drawingTools2');
-        const brushControls = document.getElementById('brushControls');
-        const exportControls = document.getElementById('exportControls');
-        const floatingToolbar = document.getElementById('floatingToolbar');
-        const textToolbar = document.getElementById('textToolbar');
+        const drawingTools = this.refs.drawingTools;
+        const drawingTools2 = this.refs.drawingTools2;
+        const brushControls = this.refs.brushControls;
+        const exportControls = this.refs.exportControls;
+        const floatingToolbar = this.refs.floatingToolbar;
+        const textToolbar = this.refs.textToolbar;
 
         if (this.currentMode === 'text') {
             this.textContainer.style.display = 'block';
@@ -1913,6 +2049,16 @@ EphemeralPad.prototype.debounce = function(fn, delay = 300) {
     };
 };
 
- document.addEventListener('DOMContentLoaded', () => {
-     new EphemeralPad();
- });
+document.addEventListener('DOMContentLoaded', () => {
+    new EphemeralPad();
+    try {
+        window.addEventListener('error', (e) => {
+            const msg = (e && e.message) || 'Unexpected error';
+            try { const app = window.padApp; app && app.showError && app.showError(msg); } catch (_) {}
+        });
+        window.addEventListener('unhandledrejection', (e) => {
+            const msg = (e && e.reason && e.reason.message) || 'Unexpected error';
+            try { const app = window.padApp; app && app.showError && app.showError(msg); } catch (_) {}
+        });
+    } catch (_) {}
+});
